@@ -1,0 +1,100 @@
+CentOS 7安装配置vsftp
+---Stephen Chern
+from http://bbs.csdn.net/topics/390915105
+参考文献：
+http://www.cnblogs.com/JemBai/archive/2009/02/05/1384413.html
+http://blog.chinaunix.net/uid-20639775-id-154476.html
+http://blog.csdn.net/kuzhu/article/details/844427
+
+****修改系统配置文件，不然后面端口修改不过来【重点】****
+#vi /etc/selinux/config
+将SELINUX=enforcing改为SELINUX=disabled
+重启电脑（这里必须重启，不然后面修改无效）
+
+下载安装&卸载
+安装
+yum install -y vsftpd
+卸载
+先用rpm -aq vsftpd 查一下ftp的名字
+在用rpm -e vsftpd-3.0.2-9.el7.x86_64刚你查出来的名字
+
+启动、停止、重启、状态 服务
+service vsftpd start
+service vsftpd stop
+service vsftpd restart
+service vsftpd status
+
+添加开机启动
+chkconfig vsftpd on
+
+临时关闭防火墙测试
+service firewalld stop
+
+配置文件：
+/etc/vsftpd/vsftpd.conf   //主配置文件
+/etc/vsftpd/ftpusers      //禁止登录FTP的用户文件
+/etc/vsftpd/user_list     //允许登录FTP的用户文件
+
+配置vsftp服务器
+vi /etc/vsftpd/vsftpd.conf
+anonymous_enable=YES 改成NO，禁止匿名访问
+文件头添加如下命令
+listen_port=43131#修改访问端口
+ftp_data_port=43132#修改通讯端口
+pasv_enable=YES#启用被动模式
+pasv_min_port=43133#被动模式起始端口范围
+pasv_max_port=43141#被动模式截止端口范围
+userlist_deny=NO#允许user_list下用户访问，禁止ftpusers下用户访问
+因为访问端口（21）和通讯端口（20）都要改掉，所以如下选项要设为NO
+connect_from_port_20=YES 改成NO
+
+添加防火墙例外端口
+
+查询端口是否添加到例外（不能用，访问端口有问题）
+firewall-cmd --permanent --add-port=43131-43141/tcp
+firewall-cmd --permanent --remove-port=43131-43141/tcp
+firewall-cmd --permanent --query-port=43131-43141/tcp
+
+firewall-cmd --permanent --add-port=43131/tcp
+firewall-cmd --permanent --add-port=43132/tcp
+firewall-cmd --permanent --add-port=43133/tcp
+firewall-cmd --permanent --add-port=43134/tcp
+firewall-cmd --permanent --add-port=43135/tcp
+firewall-cmd --permanent --add-port=43136/tcp
+firewall-cmd --permanent --add-port=43137/tcp
+firewall-cmd --permanent --add-port=43138/tcp
+firewall-cmd --permanent --add-port=43139/tcp
+firewall-cmd --permanent --add-port=43140/tcp
+firewall-cmd --permanent --add-port=43141/tcp
+
+查询例外是否添加成功
+firewall-cmd --permanent --query-port=43131/tcp
+firewall-cmd --permanent --query-port=43141/tcp
+
+重启服务
+service firewalld restart
+
+添加登录用户
+#adduser -s /sbin/nologin exam
+#passwd exam
+#设置密码
+添加到允许登录列表中去
+#echo exam>>/etc/vsftpd/user_list
+重启FTP服务器：
+#service vsftpd restart
+
+
+
+
+
+
+//////////////
+常见问题汇总：
+vsftpd：500 OOPS: vsftpd: refusing to run with writable root inside chroot ()错误的解决方法
+http://blog.csdn.net/bluishglc/article/details/42399439
+CentOS7.0 使用root登录桌面
+http://www.cnblogs.com/lixd/p/3869168.html
+Another app is currently holding the yum lock; waiting for it to exit...
+http://www.cnblogs.com/IceKernel/articles/2587274.html
+
+

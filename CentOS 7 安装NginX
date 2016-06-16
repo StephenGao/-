@@ -1,0 +1,4 @@
+CentOS 7 安装NginX
+https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-centos-7
+
+常见问题：因为nginx和ftp要合作来完成图片服务器和http服务器的功能。所以nginx.conf的location和ftp的user folder应该是指定的同一个地方。nginx.conf最上面的user nginx应该换成ftp的那个user才能具备一样的权限。
